@@ -2,7 +2,7 @@
 /***************************************************************************
  *  kindrv.cpp - KinDrv main cpp file for arm control
  *
- *  Created: Fri Oct 11 00:31:00 2013
+ *  Created: Fri Oct 11 00:031:00 2013
  *  Copyright  2013  Bahram Maleki-Fard
  *  Copyright  2014  Tekin Mericli
  ****************************************************************************/
@@ -23,7 +23,7 @@
  *  along with libkindrv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kindrv.h"
+#include "libkindrv/kindrv.h"
 
 #include <libusb.h>
 #include <stdio.h>
@@ -38,32 +38,33 @@
 #define INTR_LENGTH   64
 #define INTR_TIMEOUT  1000
 
-#define CMD_CTRL_ANG                     47
-#define CMD_CTRL_CART                    49
-#define CMD_START_FORCE_CTRL             57
-#define CMD_STOP_FORCE_CTRL              58
-#define CMD_START_API_CTRL              302
-#define CMD_STOP_API_CTRL               303
+#define CMD_CTRL_ANG            47
+#define CMD_CTRL_CART           49
+#define CMD_GET_CART_POS        44
+#define CMD_GET_ANG_POS         15
 
-#define CMD_GET_CART_POS                 44
-#define CMD_GET_ANG_POS                  15
-#define CMD_GET_CART_INFO               104
-#define CMD_GET_ANG_INFO                105
-#define CMD_GET_CART_COMMAND            106
-#define CMD_GET_ANG_COMMAND             107
-#define CMD_GET_CART_FORCE              108
-#define CMD_GET_ANG_FORCE               109
-#define CMD_GET_ANG_VEL                 114
-#define CMD_GET_ANG_CURRENT             110
-#define CMD_GET_ANG_CURRENT_MOTOR       113
+// TEST: Tekin
+#define CMD_START_FORCE_CTRL      	57
+#define CMD_STOP_FORCE_CTRL       	58
+#define CMD_GET_ANG_COMMAND       	107
+#define CMD_GET_CART_COMMAND    	106
+#define CMD_GET_ANG_VEL         	114
+#define CMD_GET_CART_FORCE      	108
+#define CMD_GET_ANG_FORCE       	109
+#define CMD_GET_ANG_CURRENT     	110
+#define CMD_GET_ANG_CURRENT_MOTOR	113
+#define CMD_GET_SENSOR_INFO		111
 
-#define CMD_GET_SENSOR_INFO             111
-#define CMD_GET_ARM_INFO                200
+#define CMD_GET_CART_INFO       	104
+#define CMD_GET_ANG_INFO        	105
+#define CMD_GET_ARM_INFO        	200
+#define CMD_ERASE_TRAJECTORIES  	301
+#define CMD_START_API_CTRL      	302
+#define CMD_STOP_API_CTRL       	303
+#define CMD_JOYSTICK            	305
+#define CMD_SEND_BASIC_TRAJ     	308
 
-#define CMD_ERASE_TRAJECTORIES          301
-#define CMD_SEND_BASIC_TRAJ             308
 
-#define CMD_JOYSTICK                    305
 
 namespace KinDrv {
 
@@ -91,7 +92,7 @@ static libusb_device** __devices; // testing
 
 /* /================================================\
  *   Public libusb-control methods
- * \================================================/ */
+ * \================================================/*/
 /** Initialize libusb.
  * This creates a libusb context which is used for the whole KinDrv library.
  * Although a context is always created implicitly when needed (e.g. when
@@ -166,9 +167,9 @@ list_devices()
   ssize_t cnt;
   cnt = libusb_get_device_list(__ctx, &__devices);
   if( cnt<0 ) {
-    fprintf( stderr, "Get_device_list error: %li \n", cnt);
+    fprintf( stderr, "Get_device_list error: %i \n", cnt);
   } else {
-    printf("%li USB devices detected \n", cnt);
+    printf("%i USB devices detected \n", cnt);
 
     list_devices(__devices);
 
@@ -200,7 +201,7 @@ print_message(usb_packet_t &msg)
 
 /* /================================================\
  *   Generic USB data transfer commands (private)
- * \================================================/ */
+ * \================================================/*/
 
 /** Incoming USB interrupt transfer. */
 inline int
@@ -281,7 +282,7 @@ JacoArm::_cmd_out(short cmd)
 
 /* /================================================\
  *   JacoArm
- * \================================================/ */
+ * \================================================/*/
 /** Constructor. */
 JacoArm::JacoArm() :
   __devh( 0 ),
@@ -324,7 +325,7 @@ JacoArm::~JacoArm()
 
 /* /================================================\
  *   Jaco specific commands (private)
- * \================================================/ */
+ * \================================================/*/
 error_t
 JacoArm::_get_cart_pos(jaco_position_t &pos)
 {
@@ -350,7 +351,7 @@ JacoArm::_get_cart_pos(jaco_position_t &pos)
     memcpy(pos.rotation, p.body + 3, sizeof(pos.rotation));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get cart position message: " << std::endl;
   //print_message(p);
   /*
@@ -359,16 +360,16 @@ JacoArm::_get_cart_pos(jaco_position_t &pos)
 
   memcpy(pos.position, p.body + 2, sizeof(pos.position));
   memcpy(pos.rotation, p.body + 8, sizeof(pos.rotation));
-
+  
   _usb_header(p, 1, 1, CMD_GET_CART_INFO, 1);
   e = _cmd_out_in(p);
   if( e == ERROR_NONE )
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   */
-
+  
   return e;
 }
-
+ 
 error_t
 JacoArm::_get_ang_pos(jaco_position_t &pos)
 {
@@ -381,14 +382,15 @@ JacoArm::_get_ang_pos(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get ang position message: " << std::endl;
   //print_message(p);
-
+  
   return e;
 }
 
 
+// TEST: Tekin
 error_t
 JacoArm::_get_ang_command(jaco_position_t &pos)
 {
@@ -401,7 +403,7 @@ JacoArm::_get_ang_command(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get ang command message: " << std::endl;
   //print_message(p);
 
@@ -421,7 +423,7 @@ JacoArm::_get_cart_command(jaco_position_t &pos)
     memcpy(pos.rotation, p.body + 3, sizeof(pos.rotation));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get cart command message: " << std::endl;
   //print_message(p);
 
@@ -440,7 +442,7 @@ JacoArm::_get_ang_vel(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get ang velocity message: " << std::endl;
   //print_message(p);
 
@@ -463,7 +465,7 @@ JacoArm::_get_cart_force(jaco_position_t &pos)
 
   //std::cout << "get cart force message: " << std::endl;
   //print_message(p);
-
+  
   return e;
 }
 
@@ -479,7 +481,7 @@ JacoArm::_get_ang_force(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get ang force message: " << std::endl;
   //print_message(p);
 
@@ -498,7 +500,7 @@ JacoArm::_get_ang_current(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get ang current message: " << std::endl;
   //print_message(p);
 
@@ -517,7 +519,7 @@ JacoArm::_get_ang_current_motor(jaco_position_t &pos)
     memcpy(pos.joints, p.body, sizeof(pos.joints));
     memcpy(pos.finger_position, p.body + 6, sizeof(pos.finger_position));
   }
-
+  
   //std::cout << "get motor current message: " << std::endl;
   //print_message(p);
 
@@ -560,7 +562,7 @@ JacoArm::_send_basic_traj(jaco_basic_traj_point_t &traj)
 
 /* /================================================\
  *   Public JacoArm methods
- * \================================================/ */
+ * \================================================/*/
 /** Start/enable controlling the arm via API/USB.
  * The default is that a connected joystick takes over control as soon as activated.
  * It is recommended to use this command before sending other commands to the arm!
@@ -590,6 +592,8 @@ JacoArm::stop_api_ctrl()
   if( e != ERROR_NONE )
     throw KinDrvException("Could not stop API control! libusb error.");
 }
+
+// TEST: Tekin
 
 /** Start/enable force control / compliant mode.
  */
@@ -683,6 +687,7 @@ JacoArm::get_ang_pos()
   return pos;
 }
 
+// TEST: Tekin
 /** Get current angular velocities of the arm.
  * @return universal position struct that contains the current joint velocities
  */
@@ -699,7 +704,7 @@ JacoArm::get_ang_vel()
   return pos;
 }
 
-/** Get current angular command of the arm.
+/** Get current angular command of the arm. 
  * @return universal position struct that contains the current joint command
  */
 jaco_position_t
@@ -854,10 +859,6 @@ JacoArm::push_joystick_button(unsigned short id)
     throw KinDrvException("Could not push joystick button! libusb error.");
 }
 
-/** Simulate a push of multiple joystick buttons.
- * These buttons are "pushed" until the user calls a relase_joystick().
- * @param buttons The struct containing the values for each button
- */
 void
 JacoArm::push_joystick_button(jaco_joystick_button_t &buttons)
 {
@@ -867,11 +868,6 @@ JacoArm::push_joystick_button(jaco_joystick_button_t &buttons)
   move_joystick(state);
 }
 
-/** Simulate joystick movement along the joystick axes.
- * This sets momentary values for the axes, so in order to stop the movement
- * you need to reset the values, or call release_joystick().
- * @param axes The struct containing the values for axes movement
- */
 void
 JacoArm::move_joystick_axis(jaco_joystick_axis_t &axes)
 {
@@ -881,10 +877,6 @@ JacoArm::move_joystick_axis(jaco_joystick_axis_t &axes)
   move_joystick(state);
 }
 
-/** Simulate the global joystick state.
- * The joystick state is a combination of button values and axes state.
- * @param state The joystick state contatining button and axes values
- */
 void
 JacoArm::move_joystick(jaco_joystick_t &state)
 {
