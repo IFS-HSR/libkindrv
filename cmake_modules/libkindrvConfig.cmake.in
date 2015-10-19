@@ -1,0 +1,11 @@
+set(libkindrv_VERSION x.y.z)
+
+@PACKAGE_INIT@
+
+message(STATUS "libkindrv_INCLUDE_DIRS = @libkindrv_INCLUDE_DIRS@")
+message(STATUS "PACKAGE_libkindrv_INCLUDE_DIRS = @PACKAGE_libkindrv_INCLUDE_DIRS@")
+
+set_and_check(libkindrv_INCLUDE_DIR "@PACKAGE_libkindrv_INCLUDE_DIRS@")
+set_and_check(libkindrv_INCLUDE_DIRS "@PACKAGE_libkindrv_INCLUDE_DIRS@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/libkindrvTargets.cmake")
