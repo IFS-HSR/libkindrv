@@ -11,18 +11,19 @@ set (libkindrv_VERSION_PATCH 0)
 set (libkindrv_VERSION ${libkindrv_VERSION_MAJOR}.${libkindrv_VERSION_MINOR}.${libkindrv_VERSION_PATCH})
 
 # find libusb library
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 find_package (libusb-1.0 REQUIRED)
-
-include_directories (
-  include
-  ${LIBUSB_1_INCLUDE_DIRS})
 
 add_library (${PROJECT_NAME} SHARED
   src/kindrv.cpp
   src/exception.cpp)
 target_link_libraries (${PROJECT_NAME}
   ${LIBUSB_1_LIBRARIES})
+target_include_directories (${PROJECT_NAME}
+  PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${LIBUSB_1_INCLUDE_DIRS})
 set_property(TARGET ${PROJECT_NAME}
   PROPERTY VERSION ${libkindrv_VERSION})
 
