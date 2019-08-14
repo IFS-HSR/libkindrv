@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8.8)
 project (libkindrv)
 
+set (CMAKE_VERBOSE_MAKEFILE ON)
+
 set (libkindrv_INCLUDE_DIRS include/)
 set (CONFIG_PACKAGE_LOCATION lib/${PROJECT_NAME})
 
@@ -13,6 +15,7 @@ set (libkindrv_VERSION ${libkindrv_VERSION_MAJOR}.${libkindrv_VERSION_MINOR}.${l
 # find libusb library
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 find_package (libusb-1.0 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 add_library (${PROJECT_NAME} SHARED
   src/kindrv.cpp
@@ -23,7 +26,8 @@ target_include_directories (${PROJECT_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  ${LIBUSB_1_INCLUDE_DIRS})
+  ${LIBUSB_1_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIR})
 set_property(TARGET ${PROJECT_NAME}
   PROPERTY VERSION ${libkindrv_VERSION})
 
