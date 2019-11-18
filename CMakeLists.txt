@@ -17,17 +17,37 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_m
 find_package (libusb-1.0 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 
-add_library (${PROJECT_NAME} SHARED
+add_library (
+  "${PROJECT_NAME}"
+  SHARED
   src/kindrv.cpp
-  src/exception.cpp)
-target_link_libraries (${PROJECT_NAME}
-  ${LIBUSB_1_LIBRARIES})
-target_include_directories (${PROJECT_NAME}
+  src/exception.cpp
+)
+
+target_compile_options(
+  "${PROJECT_NAME}"
+  PUBLIC
+  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+    -Wall
+    -Wextra
+    -Werror
+#    -pedantic-errors
+  >
+)
+
+target_link_libraries ("${PROJECT_NAME}"
+  ${LIBUSB_1_LIBRARIES}
+)
+
+target_include_directories (
+  "${PROJECT_NAME}"
   PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   ${LIBUSB_1_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIR})
+  ${Boost_INCLUDE_DIR}
+)
+
 set_property(TARGET ${PROJECT_NAME}
   PROPERTY VERSION ${libkindrv_VERSION})
 
