@@ -35,7 +35,8 @@ target_compile_options(
   >
 )
 
-target_link_libraries ("${PROJECT_NAME}"
+target_link_libraries (
+  "${PROJECT_NAME}"
   ${LIBUSB_1_LIBRARIES}
 )
 
@@ -44,6 +45,11 @@ target_include_directories (
   PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories (
+  "${PROJECT_NAME}"
+  SYSTEM PUBLIC
   ${LIBUSB_1_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIR}
 )
