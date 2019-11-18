@@ -76,7 +76,7 @@ KinDrvException::what() const throw()
 /** Get the error type.
  * @return The error type of the exception.
  */
-const error_t
+error_t
 KinDrvException::error() const throw()
 {
  return __err;

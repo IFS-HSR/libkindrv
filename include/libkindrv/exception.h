@@ -2,7 +2,7 @@
 /***************************************************************************
  *  exception.h - KinDrv exceptions
  *
- *  Created: Fri Oct 11 00:031:00 2013
+ *  Created: Fri Oct 11 00:31:00 2013
  *  Copyright  2013  Bahram Maleki-Fard
  ****************************************************************************/
 
@@ -41,7 +41,7 @@ class KinDrvException : public std::exception
   virtual ~KinDrvException() throw();
 
   const char* what() const throw();
-  const error_t error() const throw();
+  error_t error() const throw();
 
  private:
   char *__msg;
