@@ -167,9 +167,9 @@ list_devices()
   ssize_t cnt;
   cnt = libusb_get_device_list(__ctx, &__devices);
   if( cnt<0 ) {
-    fprintf( stderr, "Get_device_list error: %i \n", cnt);
+    fprintf( stderr, "Get_device_list error: %zd \n", cnt);
   } else {
-    printf("%i USB devices detected \n", cnt);
+    printf("%zd USB devices detected \n", cnt);
 
     list_devices(__devices);
 
